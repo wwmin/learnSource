@@ -150,5 +150,26 @@
             results[index] = iteratee(obj[currentKey], currentKey, obj);
         }
         return results;
-    }
+    };
+    var createReduce = function (dir) {
+        var reducer = function (obj, iteratee, memo, initial) {
+            var keys = !isArrayLike(obj) && _.keys(obj),
+                length = (keys || obj).length,
+                index = dir > 0 ? 0 : length - 1;
+            if (!initial) {
+                memo = obj[keys ? keys[index] : index];
+                index += dir;
+            }
+            for (; index >= 0 && index < length; index += dir) {
+                var currentKey = keys ? keys[index] : index;
+                memo = iteratee(memo, obj[currentKey], currentKey, obj);
+            }
+            return memo;
+        };
+        return function (obj, iteratee, memo, context) {
+            var initial=arguments.length>=3;
+            return reducer(obj,optimizedCb(iteratee,context,4),memo,initial);
+        };
+    };
+
 }());
