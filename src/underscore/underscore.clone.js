@@ -1233,7 +1233,12 @@
         return this._wrapped;
     };
     _.prototype.valueOf = _.prototype.toJSON = _.prototype.value;
-    _.prototype.toString=function(){
+    _.prototype.toString = function () {
         return String(this._wrapped);
     };
+    if (typeof define == 'function' && define.amd) {
+        define('underscore', [], function () {
+            return _;
+        })
+    }
 }());
