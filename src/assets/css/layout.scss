@@ -1,0 +1,233 @@
+
+$start-z-index: 40;
+.view-wrapper{
+  height:100%;;
+  position:relative;
+}
+.view-wrapper.header-sidenav{
+  .view-header {z-index:$start-z-index+1};
+  .view-body {z-index:$start-z-index};
+  .view-side-nav {z-index:$start-z-index};
+}
+
+.view-wrapper.sidenav-header{
+  .view-header {z-index:$start-z-index};
+  .view-body {z-index:$start-z-index};
+  .view-side-nav {z-index:$start-z-index+1};
+}
+
+.view-header{
+  position:relative;
+  min-height:48px;
+  padding:15px;
+  border-bottom:#e5e5e5 solid 1px;
+  //z-index:60;
+  //background-color:#f7f7f7;
+
+  .view-header-content {margin-top:15px;}
+  .view-header-content:first-child {margin-top:0}
+
+  .title {
+    font-size:24px;font-weight:300;
+    i.fa , span.fa {
+      margin-right:6px;
+    }
+  }
+
+  .tool {
+    .inline-tool-item {
+      margin-left:5px;
+      display: inline-block;
+      vertical-align: middle;
+    }
+    .inline-tool-item:first-child {margin-left:0}
+  }
+}
+.view-header.no-border{
+  border-bottom:0;
+}
+.view-header.has-shadow{
+  border-bottom:0;
+  box-shadow:1px 1px 3px rgba(0,0,0,.2);
+}
+
+//view-body
+.view-body{
+  position:relative;
+  flex: 1 0 0 !important;
+  height:100%;
+
+  .view-content-wrapper{
+    flex: 1 0 0 !important;
+    //z-index:58;
+    overflow:hidden;
+  }
+  .view-content{
+    height:100%;
+  }
+
+  .view-content-inner {
+    height:100%;
+    overflow:auto;
+  }
+  .view-content-inner.padding {
+    padding:15px;
+  }
+
+}
+
+
+//view-side-nav
+.view-side-nav {
+  height:100%;
+  background:#fff;
+  width:240px;
+  //z-index:59;
+  display:flex;
+  flex-direction: column;
+
+  .nav-header {
+    padding:15px;
+    .title {font-size:22px;font-weight:300;display:block}
+    .desc {color:#999;margin:0}
+  }
+  .nav-content {
+    text-align: center;
+    padding: 15px;
+  }
+  .nav-body {
+    flex:1;
+    overflow:auto;
+
+    .nav-body-inner {
+    }
+
+    .nav li.divider {
+      height: 1px;
+      margin: 0px 0;
+      overflow: hidden;
+      background-color: #e5e5e5;
+    }
+    .nav li a {
+      color:#333;
+      padding:10px 15px;
+    }
+    li.router-link-active a {
+      color: #4285f4;
+      .fa {color:#4285f4;}
+    }
+    .nav li .label {
+      float: right;
+      font-size: 12px;
+      font-weight: 300;
+      padding: 4px 7px;
+    }
+    .nav li .fa , .nav li .glyphicon  {
+      font-size: 19px;
+      vertical-align: middle;
+      text-align: center;
+      min-width: 19px;
+      margin-right: 3px;
+      color: #616161;
+    }
+    .title {
+      display: block;
+      color: #999;
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      margin: 15px 0 0;
+      padding: 8px 15px 4px;
+    }
+
+  }
+
+}
+.view-side-nav.left{}
+.view-side-nav.right{}
+.view-side-nav.left.has-shadow{
+  border-right:0;
+  box-shadow:1px 1px 3px rgba(0,0,0,.2);
+}
+.view-side-nav.right.has-shadow{
+  border-left:0;
+  box-shadow:-1px 1px 3px rgba(0,0,0,.2);
+}
+.view-side-nav.left.has-border{
+  border-right:#e5e5e5 solid 1px;
+}
+.view-side-nav.right.has-border{
+  border-left:#e5e5e5 solid 1px;
+}
+
+.side-panel {
+  position:absolute;
+  top:0;
+  height:100%;
+  z-index:50;
+  background-color:rgba(255,255,255,.95);
+}
+.side-panel.fixed {
+  position:fixed;
+  top:53px;
+}
+@for $i from 1 through 9 {
+  .side-panel.width-#{$i}0 { width: 10% * $i; }
+  .side-panel.width-#{$i}5 { width: 10% * $i+5; }
+}
+
+.side-panel.left {
+  left:0;
+  box-shadow: 1px 0 5px rgba(0,0,0,.3);
+}
+.side-panel.right{
+  right:0;
+  box-shadow: -2px 0 15px rgba(0,0,0,.3);
+}
+.side-panel.animate-leave {
+  animation-duration:.2s;
+}
+.side-panel.animate-enter {
+  animation-duration:.4s;
+}
+
+.side-panel-inner {
+  height:100%;
+
+  .header {
+    background-color:#f7f7f7;
+    padding:15px;
+    border-bottom:#e5e5e5 solid 1px;
+    .title{
+      font-size:20px;
+      font-weight:400
+    }
+    .title .fa {margin-right:10px}
+    .btn-close {
+      font-size:20px;
+      padding:12px;
+      text-decoration:none;
+      cursor:pointer
+    }
+  }
+  .body {
+    flex:1;
+    overflow:hidden;
+  }
+  .body-inner {
+    height:100%;
+    overflow:auto;
+  }
+  .body-inner.padding {padding:15px 10px;}
+
+  .footer {
+    padding:15px;
+    border-top:#e5e5e5 solid 1px;
+  }
+  .footer.buttons {font-size:0}
+  .footer.buttons .btn {
+    margin-left:5px;
+  }
+  .footer.buttons .btn:first-child {margin-right:0}
+}
+

@@ -1,0 +1,32 @@
+{
+  "name": "source",
+  "version": "1.0.0",
+  "description": "源码学习",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/wwmin/learnSource.git"
+  },
+  "keywords": [
+    "source"
+  ],
+  "author": "wwmin",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/wwmin/learnSource/issues"
+  },
+  "homepage": "https://github.com/wwmin/learnSource#readme",
+  "devDependencies": {
+    "css-loader": "^0.26.1",
+    "extract-text-webpack-plugin": "^1.0.1",
+    "file-loader": "^0.9.0",
+    "html-webpack-plugin": "^2.24.1",
+    "node-sass": "^4.1.1",
+    "sass-loader": "^4.1.1",
+    "style-loader": "^0.13.1",
+    "webpack": "^1.14.0"
+  }
+}
