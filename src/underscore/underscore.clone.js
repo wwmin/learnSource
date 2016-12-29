@@ -839,21 +839,401 @@
             }
             return obj;
         };
-        _.extend = createAssigner(_.allKeys);
 
-        _.extendOwn = _.assign = createAssigner(_.keys);
-        _.findKey = function (Obj, predicate, context) {
-            predicate = cb(predicate, context);
-            var keys = _.keys(obj), key;
-            for (var i = 0, length = keys.length; i < length; i++) {
-                key = keys[i];
-                if (predicate(obj[key], key, obj))return key;
-            }
-        };
-        var keyInObj = function (value, key, obj) {
-            return key in obj;
+    };
+    _.extend = createAssigner(_.allKeys);
+
+    _.extendOwn = _.assign = createAssigner(_.keys);
+    _.findKey = function (Obj, predicate, context) {
+        predicate = cb(predicate, context);
+        var keys = _.keys(obj), key;
+        for (var i = 0, length = keys.length; i < length; i++) {
+            key = keys[i];
+            if (predicate(obj[key], key, obj))return key;
         }
-
+    };
+    var keyInObj = function (value, key, obj) {
+        return key in obj;
+    };
+    _.pick = restArgs(function (obj, keys) {
+        var result = {}, iteratee = keys[0];
+        if (obj == null)return result;
+        if (_.isFunction(iteratee)) {
+            if (keys.length > 1)iteratee = optimizedCb(iteratee, keys[1]);
+            keys = _.allKeys(obj);
+        } else {
+            iteratee = keyInObj;
+            keys = flatten(keys, false, false);
+            obj = Object(obj);
+        }
+        for (var i = 0, length = keys.length; i < length; i++) {
+            var key = keys[i];
+            var value = obj[key];
+            if (iteratee(value, key, obj))result[key] = value;
+        }
+        return result;
+    });
+    _.omit = restArgs(function (obj, keys) {
+        var iteratee = keys[0], context;
+        if (_.isFunction(iteratee)) {
+            iteratee = _.negate(iteratee);
+            if (keys.length > 1)context = keys[1];
+        } else {
+            keys = _.map(flatten(keys, false, false), String);
+            iteratee = function (value, key) {
+                return !_.contains(keys, key);
+            };
+        }
+        return _.pick(obj, iteratee, context);
+    });
+    _.create = function (prototype, props) {
+        var result = baseCreate(prototype);
+        if (props)_.extendOwn(result, props);
+        return result;
+    };
+    _.clone = function (obj) {
+        if (!_.isObject(obj))return obj;
+        return _.isArray(obj) ? obj.slice() : _.extend({}, obj);
+    };
+    _.tap = function (obj, interceptor) {
+        interceptor(obj);
+        return obj;
+    };
+    _.isMatch = function (object, attrs) {
+        var keys = _.keys(attrs), length = keys.length;
+        if (object == null)return !length;
+        var obj = Object(object);
+        for (var i = 0; i < length; i++) {
+            var key = keys[i];
+            if (attrs[key] !== obj[key] || !(key in obj))return false;
+        }
+        return true;
+    };
+    var eq, deepEq;
+    eq = function (a, b, aStack, bStack) {
+        if (a === b)return a !== 0 || 1 / a === 1 / b;
+        if (a == null || b == null)return false;
+        if (a !== a)return b !== b;
+        var type = typeof a;
+        if (type !== 'function' && type !== 'object' && typeof b != 'object')return false;
+        return deepEq(a, b, aStack, bStack);
+    };
+    deepEq = function (a, b, aStack, bStack) {
+        if (a instanceof _)a = a._wrapped;
+        if (b instanceof _)b = b._wrapped;
+        var className = toString.call(a);
+        if (className !== toString.call(b))return false;
+        switch (className) {
+            case '[object RegExp]':
+            case '[object String]':
+                return '' + a === '' + b;
+            case '[object Number]':
+                if (+a !== +a)return +b !== +b;
+                return +a === 0 ? 1 / +a === 1 / b : +a === +b;
+            case '[object Date]':
+            case '[object Boolean]':
+                return +a === +b;
+            case '[object Symbol]':
+                return SymbolProto.valueOf.call(a) === SymbolProto.valueOf.call(b);
+        }
+        var areArrays = className === '[object Array]';
+        if (!areArrays) {
+            if (typeof a != 'object' || typeof b != 'object')return false;
+            var aCtor = a.constructor, bCtor = b.constructor;
+            if (aCtor !== bCtor && !(_.isFunction(aCtor) && aCtor instanceof aCtor && _.isFunction(bCtor) && bCtor instanceof bCtor)
+                && ('constructor' in a && 'constructor' in b)) {
+                return false;
+            }
+        }
+        aStack = aStack || [];
+        bStack = bStack || [];
+        var length = aStack.length;
+        while (length--) {
+            if (aStack[length] === a)return bStack[length] === b;
+        }
+        aStack.push(a);
+        bStack.push(b);
+        if (areArrays) {
+            length = a.length;
+            if (length !== b.length)return false;
+            while (length--) {
+                if (!eq(a[length], b[length], aStack, bStack))return false;
+            }
+        } else {
+            var keys = _.keys(a), key;
+            length = keys.length;
+            if (_.keys(b).length !== length)return false;
+            while (length--) {
+                key = keys[length];
+                if (!(_.has(b, key) && eq(a[key], b[key], aStack, bStack)))return false;
+            }
+        }
+        aStack.pop();
+        bStack.pop();
+        return true;
+    };
+    _.isEqual = function (a, b) {
+        return eq(a, b);
+    };
+    _.isEmpty = function (obj) {
+        if (obj == null)return true;
+        if (isArrayLike(obj) && (_.isArray(obj) || _.isString(obj) || _.isArguments(obj)))return obj.length === 0;
+        return _.keys(obj).length === 0;
+    };
+    _.isElement = function (obj) {
+        return !!(obj && obj.nodeType === 1);
+    };
+    _.isArray = nativeIsArray || function (obj) {
+            return toSring.call(obj) === '[object Array]';
+        };
+    _.isObject = function (obj) {
+        var type = typeof obj;
+        return type === 'function' || type === 'object' && !!obj;
+    };
+    _.each(['Arguments', 'Function', 'String', 'Number', 'Date', 'RegExp', 'Error', 'Symbol', 'Map', 'WeakMap', 'Set', 'WeakSet'], function (name) {
+        _['is' + name] = function (obj) {
+            return toString.call(obj) === '[object ' + name + ']';
+        };
+    });
+    if (!_.isArguments(arguments)) {
+        _.isArguments = function (obj) {
+            return _.has(obj, 'callee');
+        };
     }
+    var nodelist = root.document && root.document.childNodes;
+    if (typeof /./ != 'function' && typeof Int8Array != 'object' && typeof nodelist != 'function') {
+        _.isFunction = function (obj) {
+            return typeof obj == 'function' || false;
+        };
+    }
+    _.isFinite = function (obj) {
+        return !_.isSymbol(obj) && isFinite(obj) && !isNaN(parseFloat(obj));
+    };
+    _.isNaN = function (obj) {
+        return _.isNumber(obj) && isNaN(obj);
+    };
+    _.isBoolean = function (obj) {
+        return obj === true || obj === false || toString.call(obj) === '[object Boolean]';
+    };
+    _.isNull = function (obj) {
+        return obj === null;
+    };
+    _.isUndefined = function (obj) {
+        return obj === void 0;
+    };
+    _.has = function (obj, path) {
+        if (!_.isArray(path)) {
+            return obj != null && hasOwnProperty.call(obj, path);
+        }
+        var length = path.length;
+        for (var i = 0; i < length; i++) {
+            var key = path[i];
+            if (obj == null || !hasOwnProperty.call(obj, key)) {
+                return false;
+            }
+            obj = obj[key];
+        }
+        return !!length;
+    };
+    _.noConflict = function () {
+        root._ = previousUnderscore;
+        return this;
+    };
+    _.identity = function (value) {
+        return value;
+    };
+    _.constant = function (value) {
+        return function () {
+            return value;
+        };
+    };
+    _.noop = function () {
+    };
+    _.property = function (path) {
+        if (!_.isArray(path)) {
+            return shallowProperty(path);
+        }
+        return function (obj) {
+            return deepGet(obj, path);
+        };
+    };
 
+    _.propertyOf = function (obj) {
+        if (obj == null) {
+            return function () {
+            }
+        }
+        return function (path) {
+            return !_.isArray(path) ? obj[path] : deepGet(obj, path);
+        };
+    };
+    _.matcher = _.matches = function (attrs) {
+        attrs = _.extendOwn({}, attrs);
+        return function (obj) {
+            return _.isMatch(obj, attrs);
+        };
+    };
+    _.times = function (n, iteratee, context) {
+        var accum = Array(Math.max(0, n));
+        iteratee = optimizedCb(iteratee, context, 1);
+        for (var i = 0; i < n; i++) {
+            accum[i] = iteratee(i);
+        }
+        return accum;
+    };
+    _.random = function (min, max) {
+        if (max == null) {
+            max = min;
+            min = 0;
+        }
+        return min + Math.floor(Math.random() * (max - min + 1));
+    };
+    _.now = Date.now || function () {
+            return new Date().getTime();
+        };
+    var escapeMap = {
+        '&': '&amp;',
+        '<': '&lt;',
+        '>': '&gt;',
+        '"': '&quot;',
+        "'": '&#x27;',
+        '`': '&#x60;'
+    };
+    var unescapeMap = _.invert(escapeMap);
+    var createEscaper = function (map) {
+        var escaper = function (match) {
+            return map[match];
+        };
+        var source = '(?:' + _.keys(map).join('|') + ')';
+        var testRegexp = RegExp(source);
+        var replaceRegexp = RegExp(source, 'g');
+        return function (string) {
+            string = string === null ? '' : '' + string;
+            return testRegexp.test(string) ? string.replace(replaceRegexp, escaper) : string;
+        };
+    };
+    _.escape = createEscaper(escapeMap);
+    _.unescape = createEscaper(unescapeMap);
+    _.result = function (obj, path, fallback) {
+        if (!_.isArray(path))path = [path];
+        var length = path.length;
+        if (!length) {
+            return _.isFunction(fallback) ? fallback.call(obj) : fallback;
+        }
+        for (var i = 0; i < length; i++) {
+            var prop = obj == null ? void 0 : obj[path[i]];
+            if (prop == void 0) {
+                prop = fallback;
+                i = length;
+            }
+            obj = _.isFunction(prop) ? prop.call(obj) : prop;
+        }
+        return obj;
+    };
+    var idCounter = 0;
+    _.uniqueId = function (prefix) {
+        var id = ++idCounter + '';
+        return prefix ? prefix + id : id;
+    };
+    _.templateSettings = {
+        evaluate: /<%([\s\S]+?)%>/g,
+        inerpolate: /<%=([\s\S]+?)%>/g,
+        escape: /<%-([\s\S]+?)%>/g
+    };
+    var noMatch = /(.)^/;
+    var escapes = {
+        "'": "'",
+        "\\": "\\",
+        '\r': '\r',
+        '\n': '\n',
+        '\u2028': 'u2028',
+        '\u2029': 'u2029'
+    };
+    var escapteRegExp = /\\|'|\r|\n|\u2028|\u2029/g;
+    var escapeChar = function (match) {
+        return '\\' + escapes[match];
+    };
+    _.template = function (text, settings, oldSettings) {
+        if (!settings && oldSettings)settings = oldSettings;
+        settings = _.defaults({}, settings, _.templateSettings);
+        var matcher = RegExp([
+                (settings.escape || noMatch).source,
+                (settings.interpolate || noMatch).source,
+                (settings.evaluate || noMatch).source
+            ].join('|') + '|$', 'g');
+        var index = 0;
+        var source = "__p+='";
+        text.replace(matcher, function (match, escape, interpolat, evaluate, offset) {
+            source += text.slice(index, offset).replace(escapeRegExp, escapeChar);
+            index = offset + match.length;
+            if (escape) {
+                source += "'+\n((__t=(" + escape + "))==null?'':_.escape(__t))+\n'";
+            } else if (interpolate) {
+                source += "'+\n((__t=(" + interpolate + "))==null?'':__t)+\n'";
+            } else if (evaluate) {
+                source += "';\n" + evaluate + "\n__p+='";
+            }
+            return match;
+        });
+        source += "';\n";
+        if (!settings.variable)source = 'width(obj||{}){\n' + source + '}\n';
+        source = "var __t,__p='',__j=Array.prototype.join," +
+            "print=function(){__p+=__j.call(arguments,'');};\n" +
+            source + 'return __p;\n';
+        var render;
+        try {
+            render = new Function(settings.variable || 'obj', '_', source);
+        } catch (e) {
+            e.source = source;
+            throw e;
+        }
+        var template = function (data) {
+            return render.call(this, data, _);
+        };
+        var arguments = settings.variable || 'obj';
+        template.source = 'function(' + arguments + '){\n' + source + '}';
+        return template;
+    };
+    _.chain = function (obj) {
+        var instance = _(obj);
+        instance._chain = true;
+        return instance;
+    };
+    var chainResult = function (instance, obj) {
+        return instance._chain ? _(obj).chain() : obj;
+    };
+    _.mixin = function (obj) {
+        _.each(_.functions(obj), function (name) {
+            var func = _[name] = obj[name];
+            _.prototype[name] = function () {
+                var args = [this._wrapped];
+                push.apply(args, arguments);
+                return chainResult(this, func.apply(_, args));
+            };
+        });
+        return _;
+    };
+    _.mixin(_);
+    _.each(['pop', 'push', 'reverse', 'shift', 'sort', 'splice', 'unshift'], function (name) {
+        var method = ArrayProto[name];
+        _.prototype[name] = function () {
+            var ojb = this._wrapped;
+            method.apply(obj, arguments);
+            if ((name === 'shift' || name === 'splice') && obj.length === 0)delete obj[0];
+            return chainResult(this, obj);
+        };
+    });
+    _.each(['concat', 'join', 'slice'], function (name) {
+        var method = ArrayProto[name];
+        _.prototype[name] = function () {
+            return chainResult(this, method.apply(this._wrapped, arguments));
+        };
+    });
+    _.prototype.value = function () {
+        return this._wrapped;
+    };
+    _.prototype.valueOf = _.prototype.toJSON = _.prototype.value;
+    _.prototype.toString=function(){
+        return String(this._wrapped);
+    };
 }());
